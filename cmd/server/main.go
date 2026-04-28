@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -12,6 +13,7 @@ import (
 
 func main() {
 	fmt.Println("Starting Peril server...")
+	gamelogic.PrintServerHelp()
 
 	connString := "amqp://guest:guest@localhost:5672"
 	connection, err := amqp.Dial(connString)
