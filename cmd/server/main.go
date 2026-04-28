@@ -16,14 +16,18 @@ func main() {
 	connString := "amqp://guest:guest@localhost:5672"
 	connection, err := amqp.Dial(connString)
 	if err != nil {
-		fmt.Errorf("Error establishing connection to RabbitMQ: %w", err)
+		fmt.Println(
+			fmt.Errorf("Error establishing connection to RabbitMQ: %w", err),
+		)
 	}
 	defer connection.Close()
 	fmt.Println("Connection to RabbitMQ server successful!")
 
 	channel, err := connection.Channel()
 	if err != nil {
-		fmt.Errorf("Error creating channel: %w", err)
+		fmt.Println(
+			fmt.Errorf("Error creating channel: %w", err),
+		)
 	}
 
 	err = pubsub.PublishJSON(
@@ -33,7 +37,9 @@ func main() {
 		routing.PlayingState{IsPaused: true},
 	)
 	if err != nil {
-		fmt.Errorf("Error publishing JSON pause: %w", err)
+		fmt.Println(
+			fmt.Errorf("Error publishing JSON pause: %w", err),
+		)
 	}
 
 	// wait for interrupt
