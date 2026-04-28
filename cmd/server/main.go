@@ -2,8 +2,7 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/signal"
+	"log"
 
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
@@ -32,21 +31,45 @@ func main() {
 		)
 	}
 
-	err = pubsub.PublishJSON(
-		channel,
-		routing.ExchangePerilDirect,
-		routing.PauseKey,
-		routing.PlayingState{IsPaused: true},
-	)
-	if err != nil {
-		fmt.Println(
-			fmt.Errorf("Error publishing JSON pause: %w", err),
-		)
-	}
+	for {
+		inputs := gamelogic.GetInput()
+		if len(inputs) == 0 {
+			continue
+		}
 
-	// wait for interrupt
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	<-signalChan
-	fmt.Println("\nClosing Peril server\nGoodbye!")
+		switch inputs[0] {
+		case "pause":
+			log.Println("Sending pause message")
+			err = pubsub.PublishJSON(
+				channel,
+				routing.ExchangePerilDirect,
+				routing.PauseKey,
+				routing.PlayingState{IsPaused: true},
+			)
+			if err != nil {
+				log.Println(
+					fmt.Errorf("Error pausing game: %w", err),
+				)
+			}
+		case "resume":
+			log.Println("Sending resume message")
+			err = pubsub.PublishJSON(
+				channel,
+				routing.ExchangePerilDirect,
+				routing.PauseKey,
+				routing.PlayingState{IsPaused: false},
+			)
+			if err != nil {
+				log.Println(
+					fmt.Errorf("Error resuming game: %w", err),
+				)
+			}
+		case "quit":
+			log.Println("Exiting server, goodbye")
+			return
+		default:
+			log.Println("I didn't understand that command")
+		}
+
+	}
 }
