@@ -5,6 +5,8 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
+	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -22,6 +24,16 @@ func main() {
 	channel, err := connection.Channel()
 	if err != nil {
 		fmt.Errorf("Error creating channel: %w", err)
+	}
+
+	err = pubsub.PublishJSON(
+		channel,
+		routing.ExchangePerilDirect,
+		routing.PauseKey,
+		routing.PlayingState{IsPaused: true},
+	)
+	if err != nil {
+		fmt.Errorf("Error publishing JSON pause: %w", err)
 	}
 
 	// wait for interrupt
