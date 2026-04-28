@@ -1,7 +1,32 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"os/signal"
+
+	amqp "github.com/rabbitmq/amqp091-go"
+)
 
 func main() {
 	fmt.Println("Starting Peril server...")
+
+	connString := "amqp://guest:guest@localhost:5672"
+	connection, err := amqp.Dial(connString)
+	if err != nil {
+		fmt.Errorf("Error establishing connection to RabbitMQ: %w", err)
+	}
+	defer connection.Close()
+	fmt.Println("Connection to RabbitMQ server successful!")
+
+	channel, err := connection.Channel()
+	if err != nil {
+		fmt.Errorf("Error creating channel: %w", err)
+	}
+
+	// wait for interrupt
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt)
+	<-signalChan
+	fmt.Println("\nClosing Peril server\nGoodbye!")
 }
