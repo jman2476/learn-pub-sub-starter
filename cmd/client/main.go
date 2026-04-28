@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
-	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
-	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
+	"github.com/jman2476/learn-pub-sub-starter/internal/gamelogic"
+	"github.com/jman2476/learn-pub-sub-starter/internal/pubsub"
+	"github.com/jman2476/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -29,22 +29,21 @@ func main() {
 		)
 	}
 
-	channel, pauseQueue, err := pubsub.DeclareAndBind(
+	gameState := gamelogic.NewGameState(username)
+
+	err = pubsub.SubscribeJSON(
 		connection,
 		routing.ExchangePerilDirect,
 		strings.Join([]string{routing.PauseKey, username}, "."),
 		routing.PauseKey,
-		"transient",
+		pubsub.Transient,
+		handlerPause(gameState),
 	)
 	if err != nil {
 		fmt.Println(
-			fmt.Errorf("Error getting channel and queue: %w", err),
+			fmt.Errorf("Error subscribing to queue: %w", err),
 		)
 	}
-	fmt.Printf("Channel: %v Queue: %v", channel, pauseQueue)
-
-	gameState := gamelogic.NewGameState(username)
-	fmt.Println("")
 
 	for {
 		inputs := gamelogic.GetInput()

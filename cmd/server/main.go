@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
-	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
-	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
-	"github.com/bootdotdev/learn-pub-sub-starter/internal/routing"
+	"github.com/jman2476/learn-pub-sub-starter/internal/gamelogic"
+	"github.com/jman2476/learn-pub-sub-starter/internal/pubsub"
+	"github.com/jman2476/learn-pub-sub-starter/internal/routing"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -30,6 +31,20 @@ func main() {
 			fmt.Errorf("Error creating channel: %w", err),
 		)
 	}
+
+	_, logQueue, err := pubsub.DeclareAndBind(
+		connection,
+		routing.ExchangePerilTopic,
+		routing.GameLogSlug,
+		strings.Join([]string{routing.GameLogSlug, "*"}, "."),
+		pubsub.Durable,
+	)
+	if err != nil {
+		fmt.Println(
+			fmt.Errorf("Error creating game_logs queue: %w", err),
+		)
+	}
+	log.Printf("Queue: %v", logQueue)
 
 	for {
 		inputs := gamelogic.GetInput()
