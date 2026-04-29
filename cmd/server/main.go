@@ -46,6 +46,16 @@ func main() {
 	}
 	log.Printf("Queue: %v", logQueue)
 
+	err = pubsub.SubscribeGob(
+		connection,
+		routing.ExchangePerilTopic,
+		logQueue.Name,
+		strings.Join([]string{routing.GameLogSlug, "*"}, "."),
+		pubsub.SimpleQueueDurable,
+		handlerLogs(logQueue),
+		pubsub.UnmarshalGob,
+	)
+
 	for {
 		inputs := gamelogic.GetInput()
 		if len(inputs) == 0 {

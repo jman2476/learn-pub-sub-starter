@@ -66,7 +66,7 @@ func handlerWar(gs *gamelogic.GameState, ch *amqp.Channel) func(row gamelogic.Re
 			logMsg = fmt.Sprintf("%s won the war against %s", winner, loser)
 			fallthrough
 		case gamelogic.WarOutcomeDraw:
-			if logMsg != "" {
+			if logMsg == "" {
 				logMsg = fmt.Sprintf("A war between %s and %s resulted in a draw", winner, loser)
 			}
 			err := PublishLogs(
