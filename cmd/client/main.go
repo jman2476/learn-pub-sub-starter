@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jman2476/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/jman2476/learn-pub-sub-starter/internal/pubsub"
@@ -129,7 +131,32 @@ func main() {
 		case "help":
 			gamelogic.PrintClientHelp()
 		case "spam":
-			fmt.Println("Spamming not allowed yet!")
+			if len(inputs) < 2 {
+				fmt.Println(
+					fmt.Errorf("Need at least 2 arguments, second must be integer"),
+				)
+				continue
+			}
+			n, err := strconv.Atoi(inputs[1])
+			if err != nil {
+				fmt.Println(
+					fmt.Errorf("Error converting to numbers: %w", err),
+				)
+				continue
+			}
+
+			for i := 0; i < n; i++ {
+				log := gamelogic.GetMaliciousLog()
+				err = PublishLogs(
+					routing.GameLog{
+						CurrentTime: time.Now(),
+						Message:     log,
+						Username:    username,
+					},
+					channel,
+				)
+			}
+
 		case "quit":
 			gamelogic.PrintQuit()
 			return
