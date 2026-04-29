@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/jman2476/learn-pub-sub-starter/internal/gamelogic"
@@ -38,11 +37,9 @@ func handlerMove(gs *gamelogic.GameState, ch *amqp.Channel) func(gamelogic.ArmyM
 				},
 			)
 			if err != nil {
-				log.Print(
-					fmt.Errorf("Error starting a war: %w\nI guess we just got peace then...", err),
-				)
+				return pubsub.NackRequeue
 			}
-			return pubsub.NackRequeue
+			return pubsub.Ack
 		case gamelogic.MoveOutcomeSamePlayer:
 			fallthrough
 		default:
