@@ -4,13 +4,6 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type SimpleQueueType string
-
-const (
-	Durable   SimpleQueueType = "durable"
-	Transient SimpleQueueType = "transient"
-)
-
 func DeclareAndBind(
 	conn *amqp.Connection,
 	exchange,
@@ -25,9 +18,9 @@ func DeclareAndBind(
 
 	queue, err := channel.QueueDeclare(
 		queueName,
-		queueType == "durable",
-		queueType == "transient",
-		queueType == "transient",
+		queueType == SimpleQueueDurable,
+		queueType != SimpleQueueDurable,
+		queueType != SimpleQueueDurable,
 		false, nil,
 	)
 	if err != nil {

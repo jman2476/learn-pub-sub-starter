@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/jman2476/learn-pub-sub-starter/internal/gamelogic"
@@ -22,6 +23,13 @@ func main() {
 	}
 	defer connection.Close()
 
+	channel, err := connection.Channel()
+	if err != nil {
+		fmt.Println(
+			fmt.Errorf("Error creating channel: %w", err),
+		)
+	}
+
 	username, err := gamelogic.ClientWelcome()
 	if err != nil {
 		fmt.Println(
@@ -31,12 +39,13 @@ func main() {
 
 	gameState := gamelogic.NewGameState(username)
 
+	// Subscribe to PAUSE
 	err = pubsub.SubscribeJSON(
 		connection,
 		routing.ExchangePerilDirect,
 		strings.Join([]string{routing.PauseKey, username}, "."),
 		routing.PauseKey,
-		pubsub.Transient,
+		pubsub.SimpleQueueTransient,
 		handlerPause(gameState),
 	)
 	if err != nil {
@@ -45,6 +54,17 @@ func main() {
 		)
 	}
 
+	// Subscribe to ARMY_MOVES.*
+	err = pubsub.SubscribeJSON(
+		connection,
+		routing.ExchangePerilTopic,
+		strings.Join([]string{routing.ArmyMovesPrefix, username}, "."),
+		strings.Join([]string{routing.ArmyMovesPrefix, "*"}, "."),
+		pubsub.SimpleQueueTransient,
+		handlerMove(gameState),
+	)
+
+	// REPL start
 	for {
 		inputs := gamelogic.GetInput()
 
@@ -61,13 +81,28 @@ func main() {
 				)
 			}
 		case "move":
-			_, err := gameState.CommandMove(inputs)
+			move, err := gameState.CommandMove(inputs)
 			if err != nil {
 				fmt.Println(
 					fmt.Errorf("Error moving units: %w", err),
 				)
 				continue
 			}
+
+			err = pubsub.PublishJSON(
+				channel,
+				routing.ExchangePerilTopic,
+				strings.Join([]string{routing.ArmyMovesPrefix, username}, "."),
+				move,
+			)
+			if err != nil {
+				fmt.Println(
+					fmt.Errorf("Error publishing move: %w", err),
+				)
+				continue
+			}
+			log.Printf("Move %v successfully published", move)
+
 		case "status":
 			gameState.CommandStatus()
 		case "help":
