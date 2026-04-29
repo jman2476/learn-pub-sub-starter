@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -41,7 +42,7 @@ func SubscribeJSON[T any](
 	queueName,
 	key string,
 	queueType SimpleQueueType,
-	handler func(T),
+	handler func(T) Acktype,
 ) error {
 	channel, _, err := DeclareAndBind(
 		conn,
@@ -63,16 +64,27 @@ func SubscribeJSON[T any](
 	}
 
 	go func(delchan <-chan amqp.Delivery) {
-		for del := range delchan {
+
+		for msg := range delchan {
 			var data T
-			err := json.Unmarshal([]byte(del.Body), &data)
+			err := json.Unmarshal([]byte(msg.Body), &data)
 			if err != nil {
 				fmt.Println(
 					fmt.Errorf("Error unmarshaling: %w", err),
 				)
 			}
-			handler(data)
-			del.Ack(false)
+			ackType := handler(data)
+			switch ackType {
+			case Ack:
+				log.Print("msg Ack\n> ")
+				msg.Ack(false)
+			case NackRequeue:
+				log.Print("msg NackRequeue\n> ")
+				msg.Nack(false, true)
+			case NackDiscard:
+				log.Print("msg NackDiscard\n> ")
+				msg.Nack(false, false)
+			}
 		}
 	}(deliveryChan)
 

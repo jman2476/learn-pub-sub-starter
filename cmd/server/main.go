@@ -37,7 +37,7 @@ func main() {
 		routing.ExchangePerilTopic,
 		routing.GameLogSlug,
 		strings.Join([]string{routing.GameLogSlug, "*"}, "."),
-		pubsub.Durable,
+		pubsub.SimpleQueueDurable,
 	)
 	if err != nil {
 		fmt.Println(
