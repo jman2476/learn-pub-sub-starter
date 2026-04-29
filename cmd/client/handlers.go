@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jman2476/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/jman2476/learn-pub-sub-starter/internal/pubsub"
@@ -48,12 +49,12 @@ func handlerMove(gs *gamelogic.GameState, ch *amqp.Channel) func(gamelogic.ArmyM
 	}
 }
 
-func handlerWar(gs *gamelogic.GameState) func(row gamelogic.RecognitionOfWar) pubsub.Acktype {
+func handlerWar(gs *gamelogic.GameState, ch *amqp.Channel) func(row gamelogic.RecognitionOfWar) pubsub.Acktype {
 	return func(row gamelogic.RecognitionOfWar) pubsub.Acktype {
 		defer fmt.Print("> ")
 
-		outcome, _, _ := gs.HandleWar(row)
-
+		outcome, winner, loser := gs.HandleWar(row)
+		var logMsg string
 		switch outcome {
 		case gamelogic.WarOutcomeNotInvolved:
 			return pubsub.NackRequeue
@@ -62,8 +63,23 @@ func handlerWar(gs *gamelogic.GameState) func(row gamelogic.RecognitionOfWar) pu
 		case gamelogic.WarOutcomeOpponentWon:
 			fallthrough
 		case gamelogic.WarOutcomeYouWon:
+			logMsg = fmt.Sprintf("%s won the war against %s", winner, loser)
 			fallthrough
 		case gamelogic.WarOutcomeDraw:
+			if logMsg != "" {
+				logMsg = fmt.Sprintf("A war between %s and %s resulted in a draw", winner, loser)
+			}
+			err := PublishLogs(
+				routing.GameLog{
+					CurrentTime: time.Now(),
+					Message:     logMsg,
+					Username:    gs.Player.Username,
+				},
+				ch,
+			)
+			if err != nil {
+				return pubsub.NackRequeue
+			}
 			return pubsub.Ack
 		default:
 			fmt.Print(

@@ -82,7 +82,7 @@ func main() {
 		routing.WarRecognitionsPrefix,
 		strings.Join([]string{routing.WarRecognitionsPrefix, "*"}, "."),
 		pubsub.SimpleQueueDurable,
-		handlerWar(gameState),
+		handlerWar(gameState, channel),
 	)
 
 	// REPL start
