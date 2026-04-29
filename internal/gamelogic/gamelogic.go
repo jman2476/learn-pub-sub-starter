@@ -38,6 +38,13 @@ func ClientWelcome() (string, error) {
 	return username, nil
 }
 
+func QuickClientWelcome(user string) (string, error) {
+	fmt.Printf("Welcome to the Peril client, %s!\n", user)
+	username := user
+	PrintClientHelp()
+	return username, nil
+}
+
 func PrintServerHelp() {
 	fmt.Println("Possible commands:")
 	fmt.Println("* pause")

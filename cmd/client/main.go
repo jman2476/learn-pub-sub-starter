@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/jman2476/learn-pub-sub-starter/internal/gamelogic"
@@ -30,7 +31,12 @@ func main() {
 		)
 	}
 
-	username, err := gamelogic.ClientWelcome()
+	var username string
+	if len(os.Args) > 1 && os.Args[1] != "" {
+		username, err = gamelogic.QuickClientWelcome(os.Args[1])
+	} else {
+		username, err = gamelogic.ClientWelcome()
+	}
 	if err != nil {
 		fmt.Println(
 			fmt.Errorf("Error getting username: %w", err),

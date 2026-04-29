@@ -17,11 +17,14 @@ func DeclareAndBind(
 	}
 
 	queue, err := channel.QueueDeclare(
-		queueName,
-		queueType == SimpleQueueDurable,
-		queueType != SimpleQueueDurable,
-		queueType != SimpleQueueDurable,
-		false, nil,
+		queueName,                       // name
+		queueType == SimpleQueueDurable, // durable
+		queueType != SimpleQueueDurable, // autoDelete
+		queueType != SimpleQueueDurable, // exclusive
+		false,                           // noWait
+		amqp.Table{
+			"x-dead-letter-exchange": DeadLetterExchange, // args
+		},
 	)
 	if err != nil {
 		return nil, amqp.Queue{}, err

@@ -14,3 +14,7 @@ const (
 	NackRequeue
 	NackDiscard
 )
+
+const (
+	DeadLetterExchange string = "peril_dlx"
+)
