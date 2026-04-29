@@ -56,7 +56,7 @@ func main() {
 	)
 	if err != nil {
 		fmt.Println(
-			fmt.Errorf("Error subscribing to queue: %w", err),
+			fmt.Errorf("Error subscribing to pause queue: %w", err),
 		)
 	}
 
@@ -67,7 +67,22 @@ func main() {
 		strings.Join([]string{routing.ArmyMovesPrefix, username}, "."),
 		strings.Join([]string{routing.ArmyMovesPrefix, "*"}, "."),
 		pubsub.SimpleQueueTransient,
-		handlerMove(gameState),
+		handlerMove(gameState, channel),
+	)
+	if err != nil {
+		fmt.Println(
+			fmt.Errorf("Error subscribing to moves queue: %w", err),
+		)
+	}
+
+	// Subscribe to WAR
+	err = pubsub.SubscribeJSON(
+		connection,
+		routing.ExchangePerilTopic,
+		routing.WarRecognitionsPrefix,
+		strings.Join([]string{routing.WarRecognitionsPrefix, "*"}, "."),
+		pubsub.SimpleQueueDurable,
+		handlerWar(gameState),
 	)
 
 	// REPL start
