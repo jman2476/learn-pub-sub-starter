@@ -17,26 +17,6 @@ func PublishJSON[T any](
 		key,
 		val,
 	)
-
-	// data, err := json.Marshal(val)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// err = ch.PublishWithContext(
-	// 	context.Background(),
-	// 	exchange, key,
-	// 	false, false,
-	// 	amqp.Publishing{
-	// 		ContentType: "application/json",
-	// 		Body:        data,
-	// 	},
-	// )
-	// if err != nil {
-	// 	return err
-	// }
-
-	// return nil
 }
 
 func SubscribeJSON[T any](
@@ -56,47 +36,4 @@ func SubscribeJSON[T any](
 		handler,
 		unmarshalJSON,
 	)
-
-	// channel, _, err := DeclareAndBind(
-	// 	conn,
-	// 	exchange,
-	// 	queueName,
-	// 	key,
-	// 	queueType,
-	// )
-	// if err != nil {
-	// 	return err
-	// }
-
-	// deliveryChan, err := channel.Consume(
-	// 	"", "",
-	// 	false, false, false, false, nil,
-	// )
-	// if err != nil {
-	// 	return err
-	// }
-
-	// go func(delchan <-chan amqp.Delivery) {
-
-	// 	for msg := range delchan {
-	// 		var data T
-	// 		err := json.Unmarshal([]byte(msg.Body), &data)
-	// 		if err != nil {
-	// 			fmt.Println(
-	// 				fmt.Errorf("Error unmarshaling: %w", err),
-	// 			)
-	// 		}
-	// 		ackType := handler(data)
-	// 		switch ackType {
-	// 		case Ack:
-	// 			msg.Ack(false)
-	// 		case NackRequeue:
-	// 			msg.Nack(false, true)
-	// 		case NackDiscard:
-	// 			msg.Nack(false, false)
-	// 		}
-	// 	}
-	// }(deliveryChan)
-
-	// return nil
 }
