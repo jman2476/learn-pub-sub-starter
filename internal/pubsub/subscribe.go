@@ -29,6 +29,7 @@ func subscribeChannel[T any](
 		return err
 	}
 
+	channel.Qos(10, 0, true)
 	deliveryChan, err := channel.Consume(
 		"", "",
 		false, false, false, false, nil,
