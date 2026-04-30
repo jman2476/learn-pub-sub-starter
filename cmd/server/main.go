@@ -53,7 +53,6 @@ func main() {
 		strings.Join([]string{routing.GameLogSlug, "*"}, "."),
 		pubsub.SimpleQueueDurable,
 		handlerLogs(logQueue),
-		pubsub.UnmarshalGob,
 	)
 
 	for {
