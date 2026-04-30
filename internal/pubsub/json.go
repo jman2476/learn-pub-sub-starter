@@ -1,10 +1,6 @@
 package pubsub
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -14,25 +10,33 @@ func PublishJSON[T any](
 	key string,
 	val T,
 ) error {
-	data, err := json.Marshal(val)
-	if err != nil {
-		return err
-	}
-
-	err = ch.PublishWithContext(
-		context.Background(),
-		exchange, key,
-		false, false,
-		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        data,
-		},
+	return publishData(
+		ch,
+		"application/json",
+		exchange,
+		key,
+		val,
 	)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	// data, err := json.Marshal(val)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// err = ch.PublishWithContext(
+	// 	context.Background(),
+	// 	exchange, key,
+	// 	false, false,
+	// 	amqp.Publishing{
+	// 		ContentType: "application/json",
+	// 		Body:        data,
+	// 	},
+	// )
+	// if err != nil {
+	// 	return err
+	// }
+
+	// return nil
 }
 
 func SubscribeJSON[T any](
@@ -43,46 +47,56 @@ func SubscribeJSON[T any](
 	queueType SimpleQueueType,
 	handler func(T) Acktype,
 ) error {
-	channel, _, err := DeclareAndBind(
+	return subscribeChannel(
 		conn,
 		exchange,
 		queueName,
 		key,
 		queueType,
+		handler,
+		unmarshalJSON,
 	)
-	if err != nil {
-		return err
-	}
 
-	deliveryChan, err := channel.Consume(
-		"", "",
-		false, false, false, false, nil,
-	)
-	if err != nil {
-		return err
-	}
+	// channel, _, err := DeclareAndBind(
+	// 	conn,
+	// 	exchange,
+	// 	queueName,
+	// 	key,
+	// 	queueType,
+	// )
+	// if err != nil {
+	// 	return err
+	// }
 
-	go func(delchan <-chan amqp.Delivery) {
+	// deliveryChan, err := channel.Consume(
+	// 	"", "",
+	// 	false, false, false, false, nil,
+	// )
+	// if err != nil {
+	// 	return err
+	// }
 
-		for msg := range delchan {
-			var data T
-			err := json.Unmarshal([]byte(msg.Body), &data)
-			if err != nil {
-				fmt.Println(
-					fmt.Errorf("Error unmarshaling: %w", err),
-				)
-			}
-			ackType := handler(data)
-			switch ackType {
-			case Ack:
-				msg.Ack(false)
-			case NackRequeue:
-				msg.Nack(false, true)
-			case NackDiscard:
-				msg.Nack(false, false)
-			}
-		}
-	}(deliveryChan)
+	// go func(delchan <-chan amqp.Delivery) {
 
-	return nil
+	// 	for msg := range delchan {
+	// 		var data T
+	// 		err := json.Unmarshal([]byte(msg.Body), &data)
+	// 		if err != nil {
+	// 			fmt.Println(
+	// 				fmt.Errorf("Error unmarshaling: %w", err),
+	// 			)
+	// 		}
+	// 		ackType := handler(data)
+	// 		switch ackType {
+	// 		case Ack:
+	// 			msg.Ack(false)
+	// 		case NackRequeue:
+	// 			msg.Nack(false, true)
+	// 		case NackDiscard:
+	// 			msg.Nack(false, false)
+	// 		}
+	// 	}
+	// }(deliveryChan)
+
+	// return nil
 }
