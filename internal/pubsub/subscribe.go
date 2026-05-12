@@ -18,7 +18,7 @@ func subscribeChannel[T any](
 	handler func(T) Acktype,
 	unmarshamller func([]byte) (T, error),
 ) error {
-	channel, _, err := DeclareAndBind(
+	channel, queue, err := DeclareAndBind(
 		conn,
 		exchange,
 		queueName,
@@ -31,7 +31,7 @@ func subscribeChannel[T any](
 
 	channel.Qos(10, 0, true)
 	deliveryChan, err := channel.Consume(
-		"", "",
+		queue.Name, "",
 		false, false, false, false, nil,
 	)
 	if err != nil {
